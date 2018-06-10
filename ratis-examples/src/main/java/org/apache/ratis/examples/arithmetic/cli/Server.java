@@ -84,12 +84,12 @@ public class Server extends SubCommandBase {
     RaftServerConfigKeys.Log.setSegmentSizeMax(properties,
         SizeInBytes.valueOf( 1 * 1024 * 1024 * 1024));
 
-    RaftServerConfigKeys.Log.setMaxCachedSegmentNum(properties, 2);
+    RaftServerConfigKeys.Log.setMaxCachedSegmentNum(properties, 6);
 
     RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
-        TimeDuration.valueOf(8000, TimeUnit.MILLISECONDS));
+        TimeDuration.valueOf(50000, TimeUnit.MILLISECONDS));
     RaftServerConfigKeys.Rpc.setTimeoutMax(properties,
-        TimeDuration.valueOf(10000, TimeUnit.MILLISECONDS));
+        TimeDuration.valueOf(50000, TimeUnit.MILLISECONDS));
 
 
     StateMachine stateMachine = new FileStoreStateMachine(properties);
