@@ -87,7 +87,7 @@ public class Server extends SubCommandBase {
     RaftServerConfigKeys.Log.setMaxCachedSegmentNum(properties, 6);
 
     RaftServerConfigKeys.Rpc.setRequestTimeout(properties,
-        TimeDuration.valueOf(10000, TimeUnit.MILLISECONDS));
+        TimeDuration.valueOf(20000, TimeUnit.MILLISECONDS));
     RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
         TimeDuration.valueOf(8000, TimeUnit.MILLISECONDS));
     RaftServerConfigKeys.Rpc.setTimeoutMax(properties,

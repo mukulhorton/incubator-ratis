@@ -79,7 +79,7 @@ public class Assign extends Client {
     byte[] fileValue = string2Bytes(RandomStringUtils.randomAscii(length));
     FileStoreClient fileStoreClient = new FileStoreClient(client);
 
-    System.out.println("Staring load now ");
+    System.out.println("Starting load now ");
     long startTime = System.currentTimeMillis();
     List<CompletableFuture<Long>> futures = new ArrayList<>();
     for (int i = 0; i < num; i++) {
