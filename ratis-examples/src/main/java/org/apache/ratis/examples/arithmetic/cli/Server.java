@@ -60,8 +60,8 @@ public class Server extends SubCommandBase {
   public void run() throws Exception {
     RaftPeerId peerId = RaftPeerId.valueOf(id);
     RaftProperties properties = new RaftProperties();
-    int raftSegmentPreallocatedSize = 1024 * 1024 * 1024;
-
+    long raftSegmentPreallocatedSize = 1024 * 1024 * 1024;
+    long raftSegmentMaxSize = 5 * raftSegmentPreallocatedSize;
 
     RaftPeer[] peers = getPeers();
     final int port = NetUtils.createSocketAddr(getPeer(peerId).getAddress()).getPort();
@@ -82,7 +82,7 @@ public class Server extends SubCommandBase {
     RaftServerConfigKeys.Log.setPreallocatedSize(properties,
         SizeInBytes.valueOf(raftSegmentPreallocatedSize));
     RaftServerConfigKeys.Log.setSegmentSizeMax(properties,
-        SizeInBytes.valueOf( 1 * 1024 * 1024 * 1024));
+        SizeInBytes.valueOf(raftSegmentMaxSize));
 
     RaftServerConfigKeys.Log.setMaxCachedSegmentNum(properties, 6);
 
