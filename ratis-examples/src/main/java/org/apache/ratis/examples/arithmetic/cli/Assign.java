@@ -82,8 +82,9 @@ public class Assign extends Client {
 
     byte[] fileValue = string2Bytes(RandomStringUtils.randomAscii(length));
     FileStoreClient fileStoreClient = new FileStoreClient(client);
-    
-    long startTime = System.nanoTime();
+
+    System.out.println("Staring load now ");
+    long startTime = System.currentTimeMillis();
     List<CompletableFuture<Long>> futures = new ArrayList<>();
     for (int i = 0; i < num; i++) {
       String path = "file-" + entropy + "-" + i;
@@ -98,13 +99,12 @@ public class Assign extends Client {
         System.out.println("File length written is wrong: " + writtenLen + length);
       }
     }
-    long endTime = System.nanoTime();
+    long endTime = System.currentTimeMillis();
 
     System.out.println("Total files written: " + futures.size());
     System.out.println("Each files size: " + length);
     System.out.println("Total data written: " + totalBytes + " bytes");
-    System.out.println("Total time taken: " +
-        ((endTime - startTime) / NANOSECONDS_PER_MILLISECOND) + " millis");
+    System.out.println("Total time taken: " + (endTime - startTime) + " millis");
 
     client.close();
   }
