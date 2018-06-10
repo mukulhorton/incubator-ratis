@@ -55,10 +55,6 @@ public class Assign extends Client {
   Pattern binaryOperationPattern = Pattern.compile("([a-z1-9]*)([\\*\\-/\\+])([a-z1-9]*)");
   Pattern unaryOperationPattern = Pattern.compile("([√~])([a-z1-9]+)");
 
-  @Parameter(names = {
-      "--name"}, description = "Name of the variable to set", required = true)
-  String name;
-
   @Parameter(names = {"--value"}, description = "Value to set", required = true)
   String value;
 
@@ -107,6 +103,7 @@ public class Assign extends Client {
     System.out.println("Total time taken: " + (endTime - startTime) + " millis");
 
     client.close();
+    System.exit(0);
   }
 
   @VisibleForTesting

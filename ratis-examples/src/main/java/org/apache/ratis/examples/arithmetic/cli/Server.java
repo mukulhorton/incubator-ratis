@@ -61,7 +61,7 @@ public class Server extends SubCommandBase {
     RaftPeerId peerId = RaftPeerId.valueOf(id);
     RaftProperties properties = new RaftProperties();
     long raftSegmentPreallocatedSize = 1024 * 1024 * 1024;
-    long raftSegmentMaxSize = 5 * raftSegmentPreallocatedSize;
+    long raftSegmentMaxSize = 10 * raftSegmentPreallocatedSize;
 
     RaftPeer[] peers = getPeers();
     final int port = NetUtils.createSocketAddr(getPeer(peerId).getAddress()).getPort();
