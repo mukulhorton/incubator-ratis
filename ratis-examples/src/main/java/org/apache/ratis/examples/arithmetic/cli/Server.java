@@ -89,7 +89,7 @@ public class Server extends SubCommandBase {
     RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
         TimeDuration.valueOf(50000, TimeUnit.MILLISECONDS));
     RaftServerConfigKeys.Rpc.setTimeoutMax(properties,
-        TimeDuration.valueOf(50000, TimeUnit.MILLISECONDS));
+        TimeDuration.valueOf(60000, TimeUnit.MILLISECONDS));
 
 
     StateMachine stateMachine = new FileStoreStateMachine(properties);
