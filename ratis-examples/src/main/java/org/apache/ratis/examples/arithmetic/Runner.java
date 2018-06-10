@@ -40,8 +40,8 @@ public class Runner {
   private static List<SubCommandBase> commands = new ArrayList<>();
 
   static {
-    LogUtils.setLogLevel(RaftServerImpl.LOG, Level.DEBUG);
-    LogUtils.setLogLevel(RaftClient.LOG, Level.DEBUG);
+    LogUtils.setLogLevel(RaftServerImpl.LOG, Level.INFO);
+    LogUtils.setLogLevel(RaftClient.LOG, Level.INFO);
   }
 
   public static void main(String[] args) throws Exception {
