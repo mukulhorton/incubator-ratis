@@ -17,16 +17,26 @@
  */
 package org.apache.ratis.examples.arithmetic.cli;
 
+import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.client.RaftClient;
+import org.apache.ratis.client.RaftClientConfigKeys;
 import org.apache.ratis.conf.Parameters;
 import org.apache.ratis.conf.RaftProperties;
+import org.apache.ratis.grpc.GrpcConfigKeys;
 import org.apache.ratis.grpc.GrpcFactory;
+import org.apache.ratis.netty.NettyConfigKeys;
 import org.apache.ratis.protocol.ClientId;
 import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
+import org.apache.ratis.rpc.SupportedRpcType;
+import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.shaded.com.google.protobuf.ByteString;
+import org.apache.ratis.util.SizeInBytes;
+import org.apache.ratis.util.TimeDuration;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Client to connect arithmetic example cluster.
@@ -36,7 +46,26 @@ public abstract class Client extends SubCommandBase {
 
   @Override
   public void run() throws Exception {
+    int raftSegmentPreallocatedSize = 1024 * 1024 * 1024;
     RaftProperties raftProperties = new RaftProperties();
+    RaftConfigKeys.Rpc.setType(raftProperties, SupportedRpcType.GRPC);
+    GrpcConfigKeys.setMessageSizeMax(raftProperties,
+        SizeInBytes.valueOf(raftSegmentPreallocatedSize));
+    RaftServerConfigKeys.Log.Appender.setBatchEnabled(raftProperties, true);
+    RaftServerConfigKeys.Log.Appender.setBufferCapacity(raftProperties,
+        SizeInBytes.valueOf(raftSegmentPreallocatedSize));
+    RaftServerConfigKeys.Log.setWriteBufferSize(raftProperties,
+        SizeInBytes.valueOf(raftSegmentPreallocatedSize));
+    RaftServerConfigKeys.Log.setPreallocatedSize(raftProperties,
+        SizeInBytes.valueOf(raftSegmentPreallocatedSize));
+    RaftServerConfigKeys.Log.setSegmentSizeMax(raftProperties,
+        SizeInBytes.valueOf( 1 * 1024 * 1024 * 1024));
+
+    RaftServerConfigKeys.Log.setMaxCachedSegmentNum(raftProperties, 2);
+
+    RaftClientConfigKeys.Rpc.setRequestTimeout(raftProperties,
+        TimeDuration.valueOf(10000, TimeUnit.MILLISECONDS));
+    RaftClientConfigKeys.Async.setSchedulerThreads(raftProperties, 10);
 
     RaftGroup raftGroup = new RaftGroup(RaftGroupId.valueOf(ByteString.copyFromUtf8(raftGroupId)),
         parsePeers(peers));

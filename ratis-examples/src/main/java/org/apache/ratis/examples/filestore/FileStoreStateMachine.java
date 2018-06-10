@@ -22,6 +22,7 @@ import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientRequest;
 import org.apache.ratis.protocol.RaftPeerId;
+import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.storage.RaftStorage;
 import org.apache.ratis.shaded.com.google.protobuf.ByteString;
 import org.apache.ratis.shaded.com.google.protobuf.InvalidProtocolBufferException;
@@ -46,8 +47,10 @@ public class FileStoreStateMachine extends BaseStateMachine {
   private final FileStore files;
 
   public FileStoreStateMachine(RaftProperties properties) {
-    final File dir = ConfUtils.getFile(properties::getFile, FileStoreCommon.STATEMACHINE_DIR_KEY, null);
-    Objects.requireNonNull(dir, FileStoreCommon.STATEMACHINE_DIR_KEY + " is not set.");
+    System.out.println("starting filestore State Machine");
+    final File dir = ConfUtils.getFile(properties::getFile, RaftServerConfigKeys.STORAGE_DIR_KEY, null);
+    Objects.requireNonNull(dir, RaftServerConfigKeys.STORAGE_DIR_KEY + " is not set.");
+    System.out.println("starting filestore State Machine dir location" + dir.toString());
     this.files = new FileStore(this::getId, dir.toPath());
   }
 

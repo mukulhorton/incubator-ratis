@@ -19,15 +19,25 @@ package org.apache.ratis.examples.arithmetic.cli;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.examples.arithmetic.AssignmentMessage;
 import org.apache.ratis.examples.arithmetic.expression.*;
+import org.apache.ratis.examples.filestore.FileStoreClient;
 import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.shaded.com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +46,11 @@ import java.util.regex.Pattern;
  */
 @Parameters(commandDescription = "Assign value to a variable.")
 public class Assign extends Client {
+
+  private static final String UTF8_CSN = StandardCharsets.UTF_8.name();
+
+  private static final long NANOSECONDS_PER_MILLISECOND = 1000000;
+
 
   Pattern binaryOperationPattern = Pattern.compile("([a-z1-9]*)([\\*\\-/\\+])([a-z1-9]*)");
   Pattern unaryOperationPattern = Pattern.compile("([√~])([a-z1-9]+)");
@@ -47,12 +62,51 @@ public class Assign extends Client {
   @Parameter(names = {"--value"}, description = "Value to set", required = true)
   String value;
 
+  @Parameter(names = {"--files"}, description = "number of files", required = true)
+  String numFiles;
+
+  private static byte[] string2Bytes(String str) {
+    try {
+      return str.getBytes(UTF8_CSN);
+    } catch (UnsupportedEncodingException e) {
+      throw new IllegalArgumentException("UTF8 decoding is not supported", e);
+    }
+  }
+
   @Override
   protected void operation(RaftClient client) throws IOException {
-    RaftClientReply send = client.send(
-        new AssignmentMessage(new Variable(name), createExpression(value)));
-    System.out.println("Success: " + send.isSuccess());
-    System.out.println("Response: " + send.getMessage().getClass());
+    int length = Integer.parseInt(value);
+    int num = Integer.parseInt(numFiles);
+    AtomicLong totalBytes = new AtomicLong(0);
+    String entropy = RandomStringUtils.randomAlphanumeric(10);
+
+    byte[] fileValue = string2Bytes(RandomStringUtils.randomAscii(length));
+    FileStoreClient fileStoreClient = new FileStoreClient(client);
+    
+    long startTime = System.nanoTime();
+    List<CompletableFuture<Long>> futures = new ArrayList<>();
+    for (int i = 0; i < num; i++) {
+      String path = "file-" + entropy + "-" + i;
+      ByteBuffer b = ByteBuffer.wrap(fileValue);
+      futures.add(fileStoreClient.writeAsync(path, 0, true, b));
+    }
+
+    for (CompletableFuture<Long> future : futures) {
+      Long writtenLen = future.join();
+      totalBytes.addAndGet(writtenLen);
+      if (writtenLen != length) {
+        System.out.println("File length written is wrong: " + writtenLen + length);
+      }
+    }
+    long endTime = System.nanoTime();
+
+    System.out.println("Total files written: " + futures.size());
+    System.out.println("Each files size: " + length);
+    System.out.println("Total data written: " + totalBytes + " bytes");
+    System.out.println("Total time taken: " +
+        ((endTime - startTime) / NANOSECONDS_PER_MILLISECOND) + " millis");
+
+    client.close();
   }
 
   @VisibleForTesting

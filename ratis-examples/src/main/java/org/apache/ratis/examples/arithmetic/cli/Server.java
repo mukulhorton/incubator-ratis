@@ -19,21 +19,27 @@ package org.apache.ratis.examples.arithmetic.cli;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.examples.arithmetic.ArithmeticStateMachine;
+import org.apache.ratis.examples.filestore.FileStoreStateMachine;
 import org.apache.ratis.grpc.GrpcConfigKeys;
 import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
 import org.apache.ratis.protocol.RaftPeerId;
+import org.apache.ratis.rpc.SupportedRpcType;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.shaded.com.google.protobuf.ByteString;
 import org.apache.ratis.statemachine.StateMachine;
 import org.apache.ratis.util.NetUtils;
+import org.apache.ratis.util.SizeInBytes;
+import org.apache.ratis.util.TimeDuration;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class to start a ratis arithmetic example server.
@@ -54,13 +60,39 @@ public class Server extends SubCommandBase {
   public void run() throws Exception {
     RaftPeerId peerId = RaftPeerId.valueOf(id);
     RaftProperties properties = new RaftProperties();
+    int raftSegmentPreallocatedSize = 1024 * 1024 * 1024;
+
 
     RaftPeer[] peers = getPeers();
     final int port = NetUtils.createSocketAddr(getPeer(peerId).getAddress()).getPort();
     GrpcConfigKeys.Server.setPort(properties, port);
+    RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
+
     properties.setInt(GrpcConfigKeys.OutputStream.RETRY_TIMES_KEY, Integer.MAX_VALUE);
     RaftServerConfigKeys.setStorageDir(properties, storageDir);
-    StateMachine stateMachine = new ArithmeticStateMachine();
+
+    RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
+    GrpcConfigKeys.setMessageSizeMax(properties,
+        SizeInBytes.valueOf(raftSegmentPreallocatedSize));
+    RaftServerConfigKeys.Log.Appender.setBatchEnabled(properties, true);
+    RaftServerConfigKeys.Log.Appender.setBufferCapacity(properties,
+        SizeInBytes.valueOf(raftSegmentPreallocatedSize));
+    RaftServerConfigKeys.Log.setWriteBufferSize(properties,
+        SizeInBytes.valueOf(raftSegmentPreallocatedSize));
+    RaftServerConfigKeys.Log.setPreallocatedSize(properties,
+        SizeInBytes.valueOf(raftSegmentPreallocatedSize));
+    RaftServerConfigKeys.Log.setSegmentSizeMax(properties,
+        SizeInBytes.valueOf( 1 * 1024 * 1024 * 1024));
+
+    RaftServerConfigKeys.Log.setMaxCachedSegmentNum(properties, 2);
+
+    RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
+        TimeDuration.valueOf(8000, TimeUnit.MILLISECONDS));
+    RaftServerConfigKeys.Rpc.setTimeoutMax(properties,
+        TimeDuration.valueOf(10000, TimeUnit.MILLISECONDS));
+
+
+    StateMachine stateMachine = new FileStoreStateMachine(properties);
 
     RaftGroup raftGroup = new RaftGroup(RaftGroupId.valueOf(ByteString.copyFromUtf8(raftGroupId)), peers);
     RaftServer raftServer = RaftServer.newBuilder()

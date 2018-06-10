@@ -53,6 +53,11 @@ public class FileStoreClient implements Closeable {
         .build();
   }
 
+  public FileStoreClient(RaftClient client)
+      throws IOException {
+    this.client = client;
+  }
+
   @Override
   public void close() throws IOException {
     client.close();
