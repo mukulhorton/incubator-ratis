@@ -20,5 +20,5 @@ if [ -z "$1" ]; then
    echo "Usage: server.sh <nodeid>"
    exit -1
 fi
-java -jar $ARTIFACT server --storage /data/disk$1 --id $1 --peers n0:localhost:6000,n1:localhost:6001,n2:localhost:6002
+java -jar $ARTIFACT server --storage /data/disk$1/ratis --id $1 --peers n0:localhost:6000,n1:localhost:6001,n2:localhost:6002
 
